@@ -1,0 +1,172 @@
+create table customer (
+    customer_id int primary key,
+    cname varchar(20),
+    phn varchar(20)
+);
+
+create table book (
+    book_id int primary key,
+    book_name varchar(20),
+    Author varchar(20),
+    Date_of_publication date,
+    ISBN int,
+    customer_id int references customer(customer_id)
+);
+
+create table employee (
+    employee_id int,
+    Ename varchar(20),
+    phn varchar(20),
+    salary real,
+    book_id int references book(book_id) 
+);
+
+create table issue_status (
+    Book_id int references book(book_id),
+    issue_date date,
+    expiry_date date,
+    ISBN int,
+    customer_id int references customer(customer_id)
+);
+
+create table return_status (
+    book_id int references book(book_id),
+    return_date date,
+    ISBN int,
+    customer_id int references customer(customer_id)
+);
+
+create table no_of_copies (
+    book_id int references book(book_id),
+    customer_id int references customer(customer_id),
+    no_of_copies int
+);
+
+insert into customer values (301,'Ronaldo','8088943667');
+insert into customer values (302,'Messi','8088943667');
+insert into customer values (304,'Hazard','8088943667');
+insert into customer values (305,'Aguero','8088943667');
+insert into customer values (300,'Malika','8088943667');
+
+insert into book values (132,'Game of Thornes','Abyakta Koirala','01-aug-1996',101,301);
+insert into book values (133,'Harry Potter','Aditya Rouniyar','26-jun-1997',102,302);
+insert into book values (134,'Crimes of Grindwald','Aditya Rouniyar','13-nov-2018',106,302)
+insert into book values (146,'The Witcher','Pragik Timsina','06-nov-2013',103,304);
+insert into book values (156,'Lord of the Rings','Sandesh Kafle','29-jul-1954',104,305);
+insert into book values (273,'The Alchemist','Ashish Sah','23-nov-1988',105,300);
+
+insert into employee values (001,'Kunal','9861445230',20000,132);     
+insert into employee values (002,'pankaj','9860080153',35000,146);
+insert into employee values (003,'bishwas','9851007837',10000,133);
+insert into employee values (004,'anjan','9861444235',18000,156);
+insert into employee values (005,'ankit','9841535203',2000,273);
+insert into employee values (005,'ankit','9841535203',2000,134);
+
+insert into issue_status values (132,'09-nov-2019','19-nov-2019',101,301);
+insert into issue_status values (133,'06-oct-2019','16-oct-2019',102,302);
+insert into issue_status values (134,'06-oct-2019','16-oct-2019',106,302);
+insert into issue_status values (146,'08-oct-2019','18-oct-2019',103,304);
+insert into issue_status values (156,'08-oct-2019','18-oct-2019',104,305);
+insert into issue_status values (273,'09-oct-2019','19-oct-2019',105,300);
+
+insert into return_status values (132,'17-nov-2019',101,301);
+insert into return_status values (133,'16-oct-2019',102,302);
+insert into return_status values (134,'14-oct-2019',106,302);
+insert into return_status values (146,'12-oct-2019',103,304);
+insert into return_status values (156,'10-oct-2019',104,305);
+insert into return_status values (273,'18-oct-2019',105,300); 
+
+insert into No_of_copies values (132,301,6);
+insert into No_of_copies values (133,302,2);
+insert into No_of_copies values (134,302,12);
+insert into No_of_copies values (146,304,3);
+insert into No_of_copies values (156,305,2);
+insert into No_of_copies values (273,300,5);
+
+desc customer;
+
+desc book;
+
+desc employee;
+
+desc issue_status;
+
+desc return_status;
+
+desc no_of_copies;
+
+select * from customer;
+
+select * from book;
+
+select * from employee;
+
+select * from issue_status;
+
+select * from return_status;
+
+select * from no_of_copies;
+
+1) Write the book name, customer name of the books that starts with "T"?
+     select book_name,cname
+     from book b,customer c
+     where c.customer_id=b.customer_id and book_id in (select book_id
+				              from book 
+				              where book_name LIKE 'T%');		
+
+
+2)Find the return date of the book of the customer Messi?
+    select return_date
+    from return_status
+    where book_id in (select book_id
+                      from customer c, return_status r
+                      where c.customer_id=r.customer_id 
+                      and cname='Messi');
+
+
+3)Find the customer name with issue date and return date of the books who's number of copies is  greater than 5?
+    select issue_date,expiry_date,cname
+    from customer c,issue_status i
+    where c.customer_id=i.customer_id and book_id in (select book_id
+					from no_of_copies 
+					where no_of_copies>5);
+
+
+4)Find the names of the customer who's book are issued by ankit?
+    select c.cname
+    from customer c,book b
+    where b.customer_id=c.customer_id
+               and b.book_id in (select distinct b.book_id
+                                            from book b,customer c
+                                            where c.customer_id=b.customer_id
+                                             and b.book_id in (select book_id 
+                                                                           from employee
+                                                                           where ename='ankit'));
+
+5)Find the number of customer who have reserved books written by author Aditya Rouniyar?
+     select count(*)
+     from customer c,book b
+     where c.customer_id=b.customer_id 
+     and b.author='Aditya Rouniyar';
+
+
+6)Find the the name of customer who have to return the books on 15 october and 18 october along with the book name?
+    select cname,book_name
+    from customer c,book b,issue_status i
+    where (i.expiry_date between '15-oct-2019'and '18-oct-2019') 
+           and c.customer_id=b.customer_id 
+           and b.book_id=i.book_id;
+
+7)Find the customer who doesn't get book issued by ankit?
+     select cname
+     from customer 
+     where cname not in  (select cname
+                       from employee e, book b, customer c
+                       where e.book_id=b.book_id and c.customer_id=b.customer_id and e.ename='ankit');
+
+
+
+
+
+
+
